@@ -1,0 +1,150 @@
+:root {
+  --pink-light: #ffe4ec;
+  --wine: #990f40;
+  --cream: #fff7f9;
+  --blood-red: #8b0000;
+  --rose-shadow: rgba(255, 192, 203, 0.3);
+  --font: 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  background: linear-gradient(to right, var(--pink-light), var(--cream));
+}
+
+.app {
+  max-width: 650px;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 24px;
+  box-shadow: 0 10px 25px var(--rose-shadow);
+  backdrop-filter: blur(10px);
+  transition: background 0.4s ease;
+  color: #333;
+}
+
+.app.dark {
+  background: rgba(139, 0, 0, 0.9);
+  color: #ffe4ec;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  color: var(--wine);
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin: 1rem 0 0.3rem;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  background: #fff;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.app.dark input,
+.app.dark textarea {
+  background: #440000;
+  color: #ffe4ec;
+  border: 1px solid #aa2a2a;
+}
+
+button {
+  background: var(--wine);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+  margin: 1rem 0;
+  display: inline-block;
+}
+
+button:hover {
+  background: #b31353;
+}
+
+.app.dark button {
+  background: #aa2a2a;
+}
+
+.app.dark button:hover {
+  background: #dd1c45;
+}
+
+.results p {
+  font-size: 1.1rem;
+  padding: 0.4rem 0;
+  border-left: 4px solid var(--wine);
+  padding-left: 0.8rem;
+  background: #fff0f4;
+  border-radius: 6px;
+}
+
+.app.dark .results p {
+  background: #5b0000;
+  border-left: 4px solid #ff3366;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.alert {
+  background: #ffe6e6;
+  padding: 1rem;
+  border-left: 5px solid red;
+  border-radius: 8px;
+  font-weight: bold;
+  margin: 1.5rem 0;
+  color: #880000;
+}
+
+.app.dark .alert {
+  background-color: #4d0000;
+  border-left: 5px solid #ff0000;
+  color: #ffb3b3;
+}
+
+footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.admin {
+  border-top: 2px dashed #ccc;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.app.dark .admin {
+  border-color: #aa2a2a;
+  color: #ffe4ec;
+}
+
+/* Phase badges */
+.results strong::after {
+  content: ' \2764';
+  color: var(--wine);
+  margin-left: 5px;
+}
