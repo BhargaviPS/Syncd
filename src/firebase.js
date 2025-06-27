@@ -1,19 +1,15 @@
-// firebase.js
 import { initializeApp } from "firebase/app";
-import { getAnalytics, logEvent } from "firebase/analytics";
-import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
+import { 
+  getAuth, 
+  signInAnonymously, 
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence 
 } from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  updateDoc
-} from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { getAnalytics, logEvent } from "firebase/analytics";
 
+// 🔥 Your actual Firebase config here
 const firebaseConfig = {
   apiKey: "AIzaSyCWLDrUEeoXibGPprQR3N61MA8WWJB5gRM",
   authDomain: "sync-d-540cd.firebaseapp.com",
@@ -31,13 +27,15 @@ const db = getFirestore(app);
 
 export {
   auth,
-  signInAnonymously,
-  onAuthStateChanged,
   db,
   doc,
   setDoc,
   getDoc,
   updateDoc,
   analytics,
-  logEvent
+  logEvent,
+  signInAnonymously,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 };
