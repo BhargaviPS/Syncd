@@ -1,4 +1,4 @@
-// Complete updated App.js with working phase logic, mood chart, journal history
+// App.js – Full code with working phase logic, mood chart, journal history
 
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -13,7 +13,6 @@ import './App.css';
 import {
   auth,
   signInAnonymously,
-  onAuthStateChanged,
   db,
   doc,
   setDoc,
@@ -25,6 +24,7 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
+// Phase logic
 function getCurrentPhase(cycleStart, today, avgCycle = 28) {
   const start = new Date(cycleStart);
   const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
@@ -60,6 +60,7 @@ export default function App() {
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
+  // Auth and Load Data
   useEffect(() => {
     const authenticate = async () => {
       try {
@@ -83,9 +84,11 @@ export default function App() {
         setLoadingUser(false);
       }
     };
+
     authenticate();
   }, []);
 
+  // Save Data
   const saveUserData = async () => {
     if (!userId || !cycleStart) {
       alert("User not signed in or cycle start is missing.");
@@ -95,8 +98,8 @@ export default function App() {
     try {
       const date = new Date().toISOString().split('T')[0];
       const newEntry = { date, mood, journal };
-      const updatedJournal = [...journalHistory, newEntry].slice(-10);
-      const updatedMood = [...moodHistory, { date, mood }].slice(-10);
+      const updatedJournal = [...journalHistory, newEntry].slice(-12);
+      const updatedMood = [...moodHistory, { date, mood }].slice(-12);
 
       setJournalHistory(updatedJournal);
       setMoodHistory(updatedMood);
@@ -123,35 +126,24 @@ export default function App() {
     }
   };
 
+  // Phase Prediction and PCOS Alert
   useEffect(() => {
-    const authenticate = async () => {
-      try {
-        const userCred = await signInAnonymously(auth);
-        const user = userCred.user;
-        setUserId(user.uid);
+    if (cycleStart && avgCycle) {
+      const next = new Date(cycleStart);
+      next.setDate(next.getDate() + Number(avgCycle));
+      setNextPeriod(next.toDateString());
+      setPhase(getCurrentPhase(cycleStart, today, avgCycle));
 
-        const docSnap = await getDoc(doc(db, 'users', user.uid));
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setCycleStart(data.cycleStart || '');
-          setAvgCycle(data.avgCycle || 28);
-          setMood(data.mood || '');
-          setJournal(data.journal || '');
-
-          // 🔥 THESE TWO LINES WERE MISSING EARLIER:
-          setJournalHistory(data.journalHistory || []);
-          setMoodHistory(data.moodHistory || []);
-        }
-      } catch (err) {
-        console.error("Auth error:", err);
-      } finally {
-        setLoadingUser(false);
+      const cycleHistory = JSON.parse(localStorage.getItem('history') || '[]');
+      if (cycleHistory.length >= 3) {
+        const lengths = cycleHistory.map(c => c.length);
+        const max = Math.max(...lengths);
+        const min = Math.min(...lengths);
+        const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+        setShowPCOSAlert((max - min > 7) || avg > 35 || avg < 21);
       }
-    };
-
-    authenticate();
-  }, []);
-
+    }
+  }, [cycleStart, avgCycle]);
 
   const moodChartData = {
     labels: moodHistory.map(m => m.date),
@@ -235,3 +227,4 @@ export default function App() {
     </div>
   );
 }
+
