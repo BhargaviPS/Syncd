@@ -1,10 +1,19 @@
 // firebase.js
 import { initializeApp } from "firebase/app";
 import { getAnalytics, logEvent } from "firebase/analytics";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc
+} from "firebase/firestore";
 
-// ✅ CORRECT Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCWLDrUEeoXibGPprQR3N61MA8WWJB5gRM",
   authDomain: "sync-d-540cd.firebaseapp.com",
@@ -15,13 +24,11 @@ const firebaseConfig = {
   measurementId: "G-R5K6HTGPMM"
 };
 
-// 🔧 Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ Export for App.jsx
 export {
   auth,
   signInAnonymously,
@@ -30,6 +37,7 @@ export {
   doc,
   setDoc,
   getDoc,
+  updateDoc,
   analytics,
   logEvent
 };
