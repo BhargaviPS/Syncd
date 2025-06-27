@@ -1,5 +1,3 @@
-// App.js – Full code with working phase logic, mood chart, journal history
-
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -13,6 +11,8 @@ import './App.css';
 import {
   auth,
   signInAnonymously,
+  setPersistence,
+  browserLocalPersistence,
   db,
   doc,
   setDoc,
@@ -24,7 +24,6 @@ import {
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement);
 
-// Phase logic
 function getCurrentPhase(cycleStart, today, avgCycle = 28) {
   const start = new Date(cycleStart);
   const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
@@ -53,17 +52,16 @@ export default function App() {
   const [journal, setJournal] = useState('');
   const [theme, setTheme] = useState('light');
   const [showPCOSAlert, setShowPCOSAlert] = useState(false);
-  const [adminStats, setAdminStats] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [journalHistory, setJournalHistory] = useState([]);
   const [moodHistory, setMoodHistory] = useState([]);
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
-  // Auth and Load Data
   useEffect(() => {
-    const authenticate = async () => {
+    const authenticateAndLoad = async () => {
       try {
+        await setPersistence(auth, browserLocalPersistence);
         const userCred = await signInAnonymously(auth);
         const user = userCred.user;
         setUserId(user.uid);
@@ -77,6 +75,27 @@ export default function App() {
           setJournal(data.journal || '');
           setJournalHistory(data.journalHistory || []);
           setMoodHistory(data.moodHistory || []);
+          
+          // Phase and PCOS logic
+          if (data.cycleStart) {
+            const next = new Date(data.cycleStart);
+            next.setDate(next.getDate() + Number(data.avgCycle || 28));
+            setNextPeriod(next.toDateString());
+
+            const phase = getCurrentPhase(data.cycleStart, today, data.avgCycle || 28);
+            setPhase(phase);
+
+            const history = JSON.parse(localStorage.getItem('history') || '[]');
+            if (history.length >= 3) {
+              const lengths = history.map(c => c.length);
+              const max = Math.max(...lengths);
+              const min = Math.min(...lengths);
+              const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+              if ((max - min > 7) || avg < 21 || avg > 35) {
+                setShowPCOSAlert(true);
+              }
+            }
+          }
         }
       } catch (err) {
         console.error("Auth error:", err);
@@ -85,10 +104,9 @@ export default function App() {
       }
     };
 
-    authenticate();
+    authenticateAndLoad();
   }, []);
 
-  // Save Data
   const saveUserData = async () => {
     if (!userId || !cycleStart) {
       alert("User not signed in or cycle start is missing.");
@@ -120,36 +138,24 @@ export default function App() {
 
       logEvent(analytics, 'manual_save_clicked', { user_id: userId });
       alert("Data saved successfully!");
+
+      // Update UI
+      const next = new Date(cycleStart);
+      next.setDate(next.getDate() + Number(avgCycle));
+      setNextPeriod(next.toDateString());
+      setPhase(getCurrentPhase(cycleStart, today, avgCycle));
+
     } catch (err) {
       console.error("Failed to save:", err);
       alert("Something went wrong while saving.");
     }
   };
 
-  // Phase Prediction and PCOS Alert
-  useEffect(() => {
-    if (cycleStart && avgCycle) {
-      const next = new Date(cycleStart);
-      next.setDate(next.getDate() + Number(avgCycle));
-      setNextPeriod(next.toDateString());
-      setPhase(getCurrentPhase(cycleStart, today, avgCycle));
-
-      const cycleHistory = JSON.parse(localStorage.getItem('history') || '[]');
-      if (cycleHistory.length >= 3) {
-        const lengths = cycleHistory.map(c => c.length);
-        const max = Math.max(...lengths);
-        const min = Math.min(...lengths);
-        const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-        setShowPCOSAlert((max - min > 7) || avg > 35 || avg < 21);
-      }
-    }
-  }, [cycleStart, avgCycle]);
-
   const moodChartData = {
     labels: moodHistory.map(m => m.date),
     datasets: [
       {
-        label: 'Mood Score (length of word)',
+        label: 'Mood Score (word length)',
         data: moodHistory.map(m => m.mood.length),
         fill: false,
         borderColor: '#e91e63'
@@ -213,18 +219,11 @@ export default function App() {
         </div>
       )}
 
-      {adminStats && (
-        <div className="admin">
-          <h3>Admin Stats</h3>
-          <p>Total Users: {adminStats.totalUsers}</p>
-          <p>Most Common Mood: {adminStats.topMood}</p>
-        </div>
-      )}
-
       <footer>
         <small>Made with ❤️ by Bhargavi • Firebase synced</small>
       </footer>
     </div>
   );
 }
+
 
