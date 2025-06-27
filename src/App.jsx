@@ -150,6 +150,18 @@ export default function App() {
       alert("Something went wrong while saving.");
     }
   };
+  // 🔁 Recalculate phase and next period if cycleStart or avgCycle changes
+useEffect(() => {
+  if (!cycleStart) return;
+
+  const next = new Date(cycleStart);
+  next.setDate(next.getDate() + Number(avgCycle));
+  setNextPeriod(next.toDateString());
+
+  const current = getCurrentPhase(cycleStart, today, avgCycle);
+  setPhase(current);
+}, [cycleStart, avgCycle]);
+
 
   const moodChartData = {
     labels: moodHistory.map(m => m.date),
