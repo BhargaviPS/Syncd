@@ -124,22 +124,34 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (cycleStart) {
-      const next = new Date(cycleStart);
-      next.setDate(next.getDate() + Number(avgCycle));
-      setNextPeriod(next.toDateString());
-      setPhase(getCurrentPhase(cycleStart, today, avgCycle));
+    const authenticate = async () => {
+      try {
+        const userCred = await signInAnonymously(auth);
+        const user = userCred.user;
+        setUserId(user.uid);
 
-      const cycleHistory = JSON.parse(localStorage.getItem('history') || '[]');
-      if (cycleHistory.length >= 3) {
-        const lengths = cycleHistory.map(c => c.length);
-        const max = Math.max(...lengths);
-        const min = Math.min(...lengths);
-        const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
-        setShowPCOSAlert((max - min > 7) || avg > 35 || avg < 21);
+        const docSnap = await getDoc(doc(db, 'users', user.uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setCycleStart(data.cycleStart || '');
+          setAvgCycle(data.avgCycle || 28);
+          setMood(data.mood || '');
+          setJournal(data.journal || '');
+
+          // 🔥 THESE TWO LINES WERE MISSING EARLIER:
+          setJournalHistory(data.journalHistory || []);
+          setMoodHistory(data.moodHistory || []);
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+      } finally {
+        setLoadingUser(false);
       }
-    }
-  }, [cycleStart, avgCycle]);
+    };
+
+    authenticate();
+  }, []);
+
 
   const moodChartData = {
     labels: moodHistory.map(m => m.date),
